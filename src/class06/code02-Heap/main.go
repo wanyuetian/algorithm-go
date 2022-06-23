@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type MyHeap struct {
 	Data  []int
 	Limit int
@@ -7,5 +9,5 @@ type MyHeap struct {
 }
 
 func main() {
-
+	fmt.Println("hello world")
 }
