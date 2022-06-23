@@ -9,5 +9,5 @@ type MyHeap struct {
 }
 
 func main() {
-	fmt.Println("hello world")
+	fmt.Println("Hello world")
 }
