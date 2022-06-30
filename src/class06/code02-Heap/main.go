@@ -5,29 +5,33 @@ import (
 	"fmt"
 )
 
-type MyHeap struct {
-	Data  []int
-	Limit int
-	Size  int
+// https://segmentfault.com/a/1190000041634906  Go 1.18 泛型全面讲解：一篇讲清泛型的全部
+
+type GreaterHeap[T interface{}] struct {
+	Data       []T
+	Limit      int
+	Size       int
+	Comparator func(a, b T) int
 }
 
-func NewMyHeap(limit int) *MyHeap {
-	return &MyHeap{
-		Data:  make([]int, limit),
-		Limit: limit,
-		Size:  0,
+func NewGreaterHeap[T interface{}](comparator func(a, b T) int, limit int) *GreaterHeap[T] {
+	return &GreaterHeap[T]{
+		Data:       make([]T, limit),
+		Limit:      limit,
+		Size:       0,
+		Comparator: comparator,
 	}
 }
 
-func (h *MyHeap) IsEmpty() bool {
+func (h *GreaterHeap[T]) IsEmpty() bool {
 	return h.Size == 0
 }
 
-func (h *MyHeap) IsFull() bool {
+func (h *GreaterHeap[T]) IsFull() bool {
 	return h.Limit == h.Size
 }
 
-func (h *MyHeap) Push(value int) error {
+func (h *GreaterHeap[T]) Push(value T) error {
 	if h.IsFull() {
 		return errors.New("heap is full")
 	}
@@ -37,11 +41,12 @@ func (h *MyHeap) Push(value int) error {
 	return h.heapInsert(index)
 }
 
-func (h *MyHeap) Pop() (int, error) {
+func (h *GreaterHeap[T]) Pop() (T, error) {
+	var target T
 	if h.IsEmpty() {
-		return 0, errors.New("heap is empty")
+		return target, errors.New("heap is empty")
 	}
-	target := h.Data[0]
+	target = h.Data[0]
 	h.Data[h.Size-1], h.Data[0] = h.Data[0], h.Data[h.Size-1]
 	h.Size--
 	var err error
@@ -51,15 +56,23 @@ func (h *MyHeap) Pop() (int, error) {
 	return target, err
 }
 
-func (h *MyHeap) heapInsert(index int) error {
-	for h.Data[index] > h.Data[(index-1)/2] {
+func (h *GreaterHeap[T]) Peek() (T, error) {
+	var target T
+	if h.IsEmpty() {
+		return target, errors.New("heap is empty")
+	}
+	return h.Data[0], nil
+}
+
+func (h *GreaterHeap[T]) heapInsert(index int) error {
+	for h.Comparator(h.Data[index], h.Data[(index-1)/2]) > 0 { // h.Data[index] > h.Data[(index-1)/2]
 		h.Data[index], h.Data[(index-1)/2] = h.Data[(index-1)/2], h.Data[index]
 		index = (index - 1) / 2
 	}
 	return nil
 }
 
-func (h *MyHeap) heapify(index int) error {
+func (h *GreaterHeap[T]) heapify(index int) error {
 	if index >= h.Size {
 		return errors.New("index out of range")
 	}
@@ -68,7 +81,7 @@ func (h *MyHeap) heapify(index int) error {
 	var bigger int
 	for {
 		if right < h.Size {
-			if h.Data[left] > h.Data[right] {
+			if h.Comparator(h.Data[left], h.Data[right]) > 0 { // h.Data[left] > h.Data[right]
 				bigger = left
 			} else {
 				bigger = right
@@ -78,13 +91,12 @@ func (h *MyHeap) heapify(index int) error {
 		} else {
 			break
 		}
-		if h.Data[bigger] > h.Data[index] {
+		if h.Comparator(h.Data[bigger], h.Data[index]) > 0 { // h.Data[bigger] > h.Data[index]
 			h.Data[bigger], h.Data[index] = h.Data[index], h.Data[bigger]
 			index = bigger
 		} else {
 			break
 		}
-
 		left = 2*index + 1
 		right = 2*index + 2
 	}
@@ -92,7 +104,9 @@ func (h *MyHeap) heapify(index int) error {
 }
 
 func main() {
-	hp := NewMyHeap(10)
+	hp := NewGreaterHeap[int](func(a, b int) int {
+		return a - b
+	}, 10)
 	v, err := hp.Pop()
 	fmt.Println(v, err)
 	err = hp.Push(8)
@@ -153,4 +167,63 @@ func main() {
 	fmt.Println(v, err)
 	v, err = hp.Pop()
 	fmt.Println(v, err)
+
+	hp1 := NewGreaterHeap[float64](func(a, b float64) int {
+		if a > b {
+			return 1
+		} else if a == b {
+			return 0
+		}
+		return -1
+	}, 10)
+	v1, err := hp1.Pop()
+	fmt.Println(v1, err)
+	err = hp1.Push(8.0)
+	fmt.Println(err)
+	err = hp1.Push(10.0)
+	fmt.Println(err)
+	err = hp1.Push(6.1)
+	fmt.Println(err)
+	err = hp1.Push(6.3)
+	fmt.Println(err)
+	err = hp1.Push(16.32)
+	v1, err = hp1.Pop()
+	fmt.Println(v1, err)
+	v1, err = hp1.Pop()
+	fmt.Println(v1, err)
+	v1, err = hp1.Pop()
+	fmt.Println(v1, err)
+
+	type Person struct {
+		Name string
+		Age  int
+	}
+	hp2 := NewGreaterHeap(func(a, b Person) int {
+		return a.Age - b.Age
+	}, 10)
+	v2, err := hp2.Pop()
+	fmt.Println(v2, err)
+	err = hp2.Push(Person{
+		Name: "zhangfei",
+		Age:  18,
+	})
+	fmt.Println(err)
+	err = hp2.Push(Person{
+		Name: "liubei",
+		Age:  22,
+	})
+	fmt.Println(err)
+	fmt.Println(err)
+	err = hp2.Push(Person{
+		Name: "guanyu",
+		Age:  20,
+	})
+	fmt.Println(err)
+
+	v2, err = hp2.Pop()
+	fmt.Println(v2, err)
+	v2, err = hp2.Pop()
+	fmt.Println(v2, err)
+	v2, err = hp2.Pop()
+	fmt.Println(v2, err)
 }
