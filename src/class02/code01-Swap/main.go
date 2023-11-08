@@ -10,6 +10,7 @@ func swap(arr []int, i, j int) { // i != j
 	arr[i] = arr[i] ^ arr[j]
 	arr[j] = arr[i] ^ arr[j]
 	arr[i] = arr[i] ^ arr[j]
+	//arr[i], arr[j] = arr[j], arr[i]
 }
 
 func main() {
