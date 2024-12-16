@@ -11,24 +11,19 @@ func binarySearch(arr []int, num int) int {
 	if arr == nil || len(arr) == 0 {
 		return -1
 	}
+	N := len(arr)
+	L, R := 0, N-1
 
-	L, R := 0, len(arr)-1
-	var mid int
 	for L <= R {
-		mid = L + ((R - L) >> 1)
+		mid := L + (R-L)>>1
 		if arr[mid] == num {
 			return mid
-		}
-		if arr[mid] > num {
+		} else if arr[mid] > num {
 			R = mid - 1
 		} else {
 			L = mid + 1
 		}
 	}
-
-	//if arr[mid] == num {
-	//	return mid
-	//}
 	return -1
 }
 

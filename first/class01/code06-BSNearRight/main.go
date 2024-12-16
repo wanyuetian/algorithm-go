@@ -7,42 +7,41 @@ import (
 	"time"
 )
 
-func binarySearch(arr []int, num int) int {
+// 在arr上，找满足<=value的最右位置
+func nearestIndex(arr []int, value int) int {
 	if arr == nil || len(arr) == 0 {
 		return -1
 	}
+	N := len(arr)
+	L, R := 0, N-1
 
-	L, R := 0, len(arr)-1
-	var mid int
 	for L <= R {
-		mid = L + ((R - L) >> 1)
-		if arr[mid] == num {
+		mid := L + (R-L)>>1
+		if arr[mid] <= value {
+			for mid < N-1 && arr[mid+1] <= value {
+				mid++
+			}
 			return mid
-		}
-		if arr[mid] > num {
-			R = mid - 1
 		} else {
-			L = mid + 1
+			R = mid - 1
 		}
 	}
-
-	//if arr[mid] == num {
-	//	return mid
-	//}
 	return -1
 }
 
-func search(arr []int, num int) int {
+func search(arr []int, value int) int {
 	if arr == nil || len(arr) == 0 {
 		return -1
 	}
-
+	index := -1
 	for i := 0; i < len(arr); i++ {
-		if arr[i] == num {
-			return i
+		if arr[i] <= value {
+			index = i
+		} else {
+			break
 		}
 	}
-	return -1
+	return index
 }
 
 func generateRandomArray(maxSize, maxVal int) []int {
@@ -65,15 +64,15 @@ func main() {
 		//arr := []int{10, 15, 43, 60, 80, 83}
 
 		sort.Ints(arr)
-		num := rand.Intn(maxVal + 1)
+		value := rand.Intn(maxVal + 1)
 		//num := 60
-		pos1 := binarySearch(arr, num)
-		pos2 := search(arr, num)
+		pos1 := nearestIndex(arr, value)
+		pos2 := search(arr, value)
 		if pos1 != pos2 && arr[pos1] != arr[pos2] {
 			fmt.Println("Something wrong...")
 			fmt.Println(pos1, pos2)
 			fmt.Println(arr)
-			fmt.Println(num)
+			fmt.Println(value)
 			return
 		}
 	}
